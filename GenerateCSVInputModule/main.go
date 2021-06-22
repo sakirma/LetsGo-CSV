@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+type InputReadings struct {
+	meteringPointId int
+	readingType     string
+	reading         int
+	createdAt       time.Time
+}
+
 var columns = []string{"metering_point_id", "type", "reading", "created_at"}
 
 const averageGasM3 float32 = 0.052
