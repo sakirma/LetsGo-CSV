@@ -10,19 +10,31 @@ import (
 	"time"
 )
 
-type InputReadings struct {
-	meteringPointId int
-	readingType     string
-	reading         int
-	createdAt       time.Time
-}
-
 var columns = []string{"metering_point_id", "type", "reading", "created_at"}
 
 const averageGasM3 float32 = 0.052
 const averageElectricityKWh float32 = 81.621
 
 func main() {
+	if len(os.Args) > 2 {
+		fmt.Printf("Please give amount as argument")
+		os.Exit(1)
+	} else if len(os.Args) == 2 {
+		i, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			fmt.Printf("Given argument is not a number")
+			os.Exit(1)
+		}
+
+		fmt.Println("Amount is : " + os.Args[1] + "\n")
+		GenerateCSVFile(i)
+		os.Exit(0)
+	}
+
+	GenerateCSVFile(70000000)
+}
+
+func GenerateCSVFile(amount int) {
 	file, err := os.Create("result.csv")
 	checkError("Cannot create file", err)
 	defer file.Close()
@@ -37,11 +49,10 @@ func main() {
 	currentTime := time.Now()
 
 	fmt.Println(time.Now())
-	fmt.Println(strconv.FormatInt(currentTime.Unix(), 10))
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	for i := 0; i < 70000000; i++ {
+	for i := 0; i < amount; i++ {
 
 		readingTypeNumber := r.Intn(2) + 1
 		var reading float32
@@ -49,12 +60,12 @@ func main() {
 		if readingTypeNumber == 1 {
 			reading = averageElectricityKWh + float32(r.Intn(10)-5)
 		} else { // Gas
-			reading = averageGasM3 + r.Float32() * 0.01
+			reading = averageGasM3 + r.Float32()*0.01
 		}
 
 		readingType := strconv.Itoa(readingTypeNumber)
 
-		unixTimeStamp := currentTime.Add(time.Minute * time.Duration(i * 15)).Unix()
+		unixTimeStamp := currentTime.Add(time.Minute * time.Duration(i*15)).Unix()
 		row := []string{strconv.Itoa(i), readingType, fmt.Sprintf("%f", reading), strconv.FormatInt(unixTimeStamp, 10)}
 		writeInFile(writer, row)
 	}
