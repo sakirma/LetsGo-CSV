@@ -33,7 +33,10 @@ func main() {
 	defer f.Close()
 
 	reader := csv.NewReader(f)
-	reader.Read() // Ignore headers
+	_, err = reader.Read()
+	if err != nil {
+		log.Panic(err)
+	}
 
 	err = Init(reader)
 	if err != nil {
