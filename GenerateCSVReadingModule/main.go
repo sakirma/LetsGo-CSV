@@ -12,8 +12,9 @@ import (
 
 var columns = []string{"metering_point_id", "type", "reading", "created_at"}
 
-const averageGasM3 float32 = 0.052
-const averageElectricityKWh float32 = 81.621
+const averageGasM3 float32 = 0.048
+const averageElectricityWh float32 = 81.621
+
 
 func main() {
 	if len(os.Args) > 2 {
@@ -31,7 +32,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	GenerateCSVFile(70000000)
+	GenerateCSVFile(10)
 }
 
 func GenerateCSVFile(amount int) {
@@ -51,17 +52,20 @@ func GenerateCSVFile(amount int) {
 	fmt.Println(time.Now())
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var currentReading float32
 
 	for i := 0; i < amount; i++ {
 
 		readingTypeNumber := r.Intn(2) + 1
-		var reading float32
+		reading := currentReading
 		// Electricity
 		if readingTypeNumber == 1 {
-			reading = averageElectricityKWh + float32(r.Intn(10)-5)
+			reading += averageElectricityWh + float32(r.Intn(10)-5)
 		} else { // Gas
-			reading = averageGasM3 + r.Float32()*0.01
+			reading += averageGasM3 + r.Float32()*0.01
 		}
+
+		currentReading = reading
 
 		readingType := strconv.Itoa(readingTypeNumber)
 
