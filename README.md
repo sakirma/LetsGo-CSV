@@ -1,5 +1,3 @@
-# Readme
-
 ## General
 ### How to run
 1. Execute GenerateCSVInput.exe | `GenerateCSVInput <amount> <type=1/2>`
