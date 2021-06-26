@@ -15,28 +15,33 @@ var columns = []string{"metering_point_id", "type", "reading", "created_at"}
 const averageGasM3 float32 = 0.048
 const averageElectricityWh float32 = 81.621
 
-
 func main() {
-	if len(os.Args) > 2 {
-		fmt.Printf("Please give amount as argument")
-		os.Exit(1)
-	} else if len(os.Args) == 2 {
+	if len(os.Args) >= 2 {
 		i, err := strconv.Atoi(os.Args[1])
 		if err != nil {
-			fmt.Printf("Given argument is not a number")
+			fmt.Printf("First argument is not a number")
 			os.Exit(1)
 		}
 
+		t := 1
+		if len(os.Args) == 3 {
+			t, err = strconv.Atoi(os.Args[2])
+			if err != nil {
+				fmt.Printf("second argument is not a number")
+				os.Exit(1)
+			}
+		}
+
 		fmt.Println("Amount is : " + os.Args[1] + "\n")
-		GenerateCSVFile(i)
+		GenerateCSVFile(i, t)
 		os.Exit(0)
 	}
 
-	GenerateCSVFile(10)
+	GenerateCSVFile(10, 1)
 }
 
-func GenerateCSVFile(amount int) {
-	file, err := os.Create("result.csv")
+func GenerateCSVFile(amount int, t int) {
+	file, err := os.Create("input.csv")
 	checkError("Cannot create file", err)
 	defer file.Close()
 
@@ -56,10 +61,9 @@ func GenerateCSVFile(amount int) {
 
 	for i := 0; i < amount; i++ {
 
-		readingTypeNumber := r.Intn(2) + 1
 		reading := currentReading
 		// Electricity
-		if readingTypeNumber == 1 {
+		if t == 1 {
 			reading += averageElectricityWh + float32(r.Intn(10)-5)
 		} else { // Gas
 			reading += averageGasM3 + r.Float32()*0.01
@@ -67,10 +71,8 @@ func GenerateCSVFile(amount int) {
 
 		currentReading = reading
 
-		readingType := strconv.Itoa(readingTypeNumber)
-
 		unixTimeStamp := currentTime.Add(time.Minute * time.Duration(i*15)).Unix()
-		row := []string{strconv.Itoa(i), readingType, fmt.Sprintf("%f", reading), strconv.FormatInt(unixTimeStamp, 10)}
+		row := []string{strconv.Itoa(i), strconv.Itoa(t), fmt.Sprintf("%f", reading), strconv.FormatInt(unixTimeStamp, 10)}
 		writeInFile(writer, row)
 	}
 

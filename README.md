@@ -1,41 +1,44 @@
 # Readme
 
+## General
+#### Architecture
+My idea for the architecture was to split the tool in different modules. This way I could have the Reader module be
+imported and used by any other application. It is straight and simple.
+
+* GenerateCSVInput: Generates a CSV input file which can be used
+* GenerateCSVOutput: Generates a CSV output file by using the Reader module
+* Reader: Reads a CSV input file and provides method to get costs for usage.
+    * Most important methods for this assignment are in this class: Init & GetNextCost
+
+#### Linter & Unit testing
+TODO
+
 ## Assumptions
 
-### CSV
-
-There is a chance that the starting rows in the CSV has invalid readings. <br> 
-I assume removing the first invalid readings until the next valid readings wouldn't do harm to the result, since that the CSV files has millions of data for readings and removing the first 10 or 100 readings would still give an accurate result at the end. 
-
-First I created a csv generator in a module. <br>
-The goal of this choice is to be able to:
-
-* Find or learn a package that can generate the csv files
-* Reuse this package for the output
-* Use this package for the unit testing.
-
-#### Generation
+### CSV Input Generation
 
 [Gas and Electricity usage source](https://www.engie.nl/product-advies/gemiddeld-energieverbruik) <br>
-A random type and value will be chosen and the average usage of each type will be used for this:
+A random value will be chosen for each of the type readings:
 
 * Gas: 2 people = 1710m3 ever year| `1710 / 525600 * 15 = 0.048` = m3 / minutes in year * 15 min
 * Electricity: 2 people = 2860kWh ever year | `2860000 / 525600 * 15 * 1000 = 81.621` = Wh / minutes in year * 15 min
 
-Will add or substract some random value to these readings. If an option is given to the program, then it will create
+Will add or subtract some random value to these readings.
 incorrect readings.
 
-#### Unit testing
+Another assumption that I have made is that the `metering_point_id` is always valid in the input file.
 
-TODO (Will use random with a seed)
+### CSV
 
-### Reading the Input
+There is a chance that the starting rows in the CSV has invalid readings. This gave me the reason to remove every
+invalid readings until I get to find a valid one.  <br>
+I assume removing the first invalid readings until the next valid readings wouldn't do harm to the result, because the
+CSV files has millions of data for readings and removing the first 10 or 100 readings would still give an accurate
+result at the end.
 
-Since I am able to generate a CSV file, I will read this and convert it into usage using the following algorithm: <br>
-`usage = reading * (i + 1) - reading * i`
+### Reading
 
-This will be done in an other module with multiple packages.
-
-* One package to read the CSV.
-* One package will convert the readings into usage.
-    * It will also check if it is valid.
+* It doesn't mention how the metering points work exactly. So I have assumed that the metering points only count up the
+  readings compared to the previous reading. This gives a usage or costs that makes much more sense.
+* The missing usage is consumed linearly and I was afraid that this would cause the usage go further down below the 0 or
+  above the 100. Which is the reason why I am clamping the reading between 0 and 100 whenever I encounter an invalid data.

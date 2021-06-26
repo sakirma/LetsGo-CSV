@@ -1,10 +1,7 @@
-package main
+package reader
 
 import (
-	"encoding/csv"
-	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 )
@@ -14,53 +11,27 @@ type Cost struct {
 	Value float32
 }
 
-type row struct {
+type Row struct {
 	Id      uint64
 	Reading float32
 	Type    int
 	Date    time.Time
 }
 
-var bus [2]row // TODO: Assumption Explain why the size is two in readme
+var bus [2]Row // TODO: Assumption Explain why the size is two in readme
 
-func main() {
-	file := "./result.csv"
-	f, err := os.Open(file)
-	if err != nil {
-		log.Panic("Couldn't open file " + file)
-	}
-
-	defer f.Close()
-
-	reader := csv.NewReader(f)
-	_, err = reader.Read()
-	if err != nil {
-		log.Panic(err)
-	}
-
-	err = Init(reader)
-	if err != nil {
-		log.Panic("Could not iterate through the file")
-	}
-
-	for {
-		cost, err := GetNextCost(reader)
-		fmt.Println(cost)
-
-		if err != nil {
-			break
-		}
-	}
+type Reader interface {
+	Read() (record []string, err error)
 }
 
 // Init Returns error if something went bad while reading the file
 // Returns the array of the first two costs
-func Init(reader *csv.Reader) error {
+func Init(reader Reader) error {
 
-	getNextRow := func() (row, error) {
+	getNextRow := func() (Row, error) {
 		read, err := reader.Read()
 		if err != nil {
-			return row{}, err
+			return Row{}, err
 		}
 
 		return parseRow(read), nil
@@ -77,7 +48,7 @@ func Init(reader *csv.Reader) error {
 		}
 
 		usage := getUsage(currentReading, row2)
-		if isUsageValid(usage) {
+		if IsUsageValid(usage) {
 			bus[0] = currentReading
 			bus[1] = row2
 			break
@@ -90,22 +61,22 @@ func Init(reader *csv.Reader) error {
 }
 
 // GetNextCost returns the next usage of the readings
-func GetNextCost(reader *csv.Reader) (Cost, error) {
-	cost := readingToCost(bus[0], bus[1])
+func GetNextCost(reader Reader) (*Cost, error) {
+	cost := ReadingToCost(bus[0], bus[1])
 
 	r, err := reader.Read()
 	if err != nil {
-		return cost, err
+		return &cost, err
 	}
 
 	nextRow := parseRow(r)
-	if !isUsageValid(getUsage(bus[1], nextRow)) {
+	if !IsUsageValid(getUsage(bus[1], nextRow)) {
 		diff := bus[1].Reading - bus[0].Reading
-		nextRow.Reading = clampReading(bus[1].Reading+diff, 0, 100) // TODO: Assumption: Linear Readings should be kept min maxed or else we will get problems with a continues invalid data.
+		nextRow.Reading = clampReading(bus[1].Reading+diff, 0, 100)
 	}
 	addToBus(nextRow)
 
-	return cost, nil
+	return &cost, nil
 }
 
 func clampReading(reading float32, min float32, max float32) float32 {
@@ -124,7 +95,7 @@ const typeIndex = 1
 const readingIndex = 2
 const timeIndex = 3
 
-func parseRow(r []string) row {
+func parseRow(r []string) Row {
 	id, err := strconv.ParseUint(r[idIndex], 10, 64)
 	if err != nil {
 		panicNumberConversion(r[idIndex])
@@ -145,14 +116,14 @@ func parseRow(r []string) row {
 		panicNumberConversion(r[timeIndex])
 	}
 
-	return row{id, float32(reading), typeNumber, time.Unix(i, 0)}
+	return Row{id, float32(reading), typeNumber, time.Unix(i, 0)}
 }
 
-func getUsage(row1 row, row2 row) float32 {
+func getUsage(row1 Row, row2 Row) float32 {
 	return getReadingKWh(row2) - getReadingKWh(row1)
 }
 
-func readingToCost(row1 row, row2 row) Cost {
+func ReadingToCost(row1 Row, row2 Row) Cost {
 	usage := getUsage(row1, row2)
 
 	var cost float32
@@ -175,7 +146,7 @@ func readingToCost(row1 row, row2 row) Cost {
 	return Cost{Id: row1.Id, Value: cost}
 }
 
-func getReadingKWh(r row) float32 {
+func getReadingKWh(r Row) float32 {
 	if r.Type == 1 {
 		return r.Reading / 1000
 	} else {
@@ -183,11 +154,11 @@ func getReadingKWh(r row) float32 {
 	}
 }
 
-func isUsageValid(usage float32) bool {
+func IsUsageValid(usage float32) bool {
 	return usage >= 0 && usage <= 100
 }
 
-func addToBus(r row) {
+func addToBus(r Row) {
 	temp := bus[1]
 	bus[0] = temp
 	bus[1] = r
@@ -195,4 +166,8 @@ func addToBus(r row) {
 
 func panicNumberConversion(name string) {
 	log.Panic("Could not convert " + name + " reading into a number")
+}
+
+func GetBus() [2]Row {
+	return bus
 }
