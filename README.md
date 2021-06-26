@@ -1,7 +1,11 @@
 # Readme
 
 ## General
-#### Architecture
+### How to run
+1. Execute GenerateCSVInput.exe | `GenerateCSVInput <amount> <type=1/2>`
+2. An Input.csv file will be generated. This file has to be placed inside `GenerateCSVOutput`
+3. Run GenerateCSVOutput.exe
+### Architecture
 My idea for the architecture was to split the tool in different modules. This way I could have the Reader module be
 imported and used by any other application. It is straight and simple.
 
@@ -10,8 +14,9 @@ imported and used by any other application. It is straight and simple.
 * Reader: Reads a CSV input file and provides method to get costs for usage.
     * Most important methods for this assignment are in this class: Init & GetNextCost
 
-#### Linter & Unit testing
-TODO
+### Linter & Unit testing
+* Linter has been implemented through Github Actions. This uses the script within the `tools` folder to get all the modules of the repository. <br> Unfortunately, `golangci-lint` does not support multiple modules within the subdirs. An issue exists of this on Github but it still is not fixed yet <br>https://github.com/golangci/golangci-lint/issues/828
+* Unit tests have been done through the IDE (Goland). There is only one file that checks the core of the application, which is the Reader module.
 
 ## Assumptions
 
