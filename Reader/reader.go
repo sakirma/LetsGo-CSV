@@ -18,7 +18,7 @@ type Row struct {
 	Date    time.Time
 }
 
-var bus [2]Row // TODO: Assumption Explain why the size is two in readme
+var bus [2]Row
 
 type Reader interface {
 	Read() (record []string, err error)
