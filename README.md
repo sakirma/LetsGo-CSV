@@ -1,6 +1,6 @@
 ## General
 ### How to run
-1. Execute GenerateCSVInput.exe | `GenerateCSVInput <amount> <type=1/2>`
+1. Execute GenerateCSVInput.exe | `$ GenerateCSVInput <amount> <type=1/2>`
 2. An Input.csv file will be generated. This file has to be placed inside `GenerateCSVOutput`
 3. Run GenerateCSVOutput.exe
 ### Architecture
