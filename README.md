@@ -29,8 +29,6 @@ A random value will be chosen for each of the type readings:
 Will add or subtract some random value to these readings.
 incorrect readings.
 
-Another assumption that I have made is that the `metering_point_id` is always valid in the input file.
-
 ### CSV
 
 There is a chance that the starting rows in the CSV has invalid readings. This gave me the reason to remove every
